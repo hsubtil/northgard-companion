@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CLAN_IDS, CLANS, PLAYER_COLORS } from '../data/clans';
+import { CLAN_IDS, CLANS, PLAYER_COLORS, colorCss } from '../data/clans';
 import { CREATURES } from '../data/creatures';
 import { ENV_TILE_IDS, ENV_TILES } from '../data/environment';
 import { EXPANSIONS } from '../data/expansions';
@@ -69,13 +69,16 @@ export function ConfigScreen() {
             <div key={p.id} className="player-row">
               <span className="seat">{i + 1}</span>
               <input value={p.name} onChange={(e) => updatePlayer(i, { name: e.target.value })} aria-label="Nom" />
-              <select value={p.color} onChange={(e) => updatePlayer(i, { color: e.target.value })} aria-label="Couleur">
-                {PLAYER_COLORS.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.label}
-                  </option>
-                ))}
-              </select>
+              <div className="color-select">
+                <span className="color-preview" style={{ background: colorCss(p.color) }} aria-hidden="true" />
+                <select value={p.color} onChange={(e) => updatePlayer(i, { color: e.target.value })} aria-label="Couleur">
+                  {PLAYER_COLORS.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
               <select value={p.clan} onChange={(e) => updatePlayer(i, { clan: e.target.value as Player['clan'] })} aria-label="Clan">
                 {CLAN_IDS.map((c) => (
                   <option key={c} value={c}>

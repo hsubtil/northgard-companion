@@ -27,6 +27,8 @@ Le thème s’inspire des paysages bleu orage et des titres blancs du [site Nort
 
 Les couleurs et styles partagés sont dans `src/index.css`. Les visuels restent servis localement et utilisent le chemin de base Vite pour GitHub Pages.
 
+Le panneau Joueurs affiche un aperçu de la couleur choisie. Les badges de joueur conservent un texte clair sur fond sombre, même dans les boutons sélectionnés dorés.
+
 ## Où modifier les règles
 
 Tout le contenu de règles est dans `src/data/` (textes en français) :

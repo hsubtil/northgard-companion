@@ -326,6 +326,7 @@ select {
   border: 2px solid;
   border-radius: 999px;
   background: var(--bg2);
+  color: var(--text);
   white-space: nowrap;
 }
 .player-tag .dot {
@@ -353,6 +354,25 @@ select {
   text-align: center;
   font-weight: bold;
   color: var(--accent);
+}
+.color-select {
+  position: relative;
+  min-width: 0;
+}
+.color-select select {
+  width: 100%;
+  padding-left: 2rem;
+}
+.color-preview {
+  position: absolute;
+  left: 0.6rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1rem;
+  height: 1rem;
+  border: 1px solid var(--muted);
+  border-radius: 50%;
+  pointer-events: none;
 }
 .expansions {
   display: grid;
