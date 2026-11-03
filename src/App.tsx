@@ -7,10 +7,12 @@ import { SetupScreen } from './components/SetupScreen';
 import { Modal } from './components/ui';
 import { GameContext } from './state/context';
 import { loadStore, saveStore, storeReducer } from './state/store';
+import { useI18n } from './i18n';
 
 export default function App() {
   const [store, dispatch] = useReducer(storeReducer, undefined, loadStore);
   const [rulesOpen, setRulesOpen] = useState(false);
+  const { language, setLanguage, t } = useI18n();
   const state = store.present;
 
   useEffect(() => saveStore(store), [store]);
@@ -21,31 +23,37 @@ export default function App() {
         <h1 className="brand">
           <img src={`${import.meta.env.BASE_URL}logo.svg`} alt="" width="56" height="56" />
           <span className="brand-name">
-            Northgard <span className="brand-subtitle">Compagnon de jeu</span>
+            Northgard             <span className="brand-subtitle">{t('Compagnon de jeu')}</span>
           </span>
         </h1>
         <div className="row header-actions">
+          <label className="language-select">
+            <select aria-label="Langue / Language" value={language} onChange={(e) => setLanguage(e.target.value as 'fr' | 'en')}>
+              <option value="fr">Français</option>
+              <option value="en">English</option>
+            </select>
+          </label>
           {state.stage !== 'play' && (
             <button className="ghost" onClick={() => setRulesOpen(true)}>
-              📜 Règles
+              📜 {t('Règles')}
             </button>
           )}
           <button
             className="ghost"
             disabled={store.past.length === 0}
             onClick={() => dispatch({ type: 'UNDO' })}
-            title="Annuler la dernière action"
+            title={t('Annuler la dernière action')}
           >
-            ↶ Annuler
+            ↶ {t('Annuler')}
           </button>
           {state.stage !== 'config' && (
             <button
               className="ghost danger"
               onClick={() => {
-                if (confirm('Abandonner la partie en cours et en commencer une nouvelle ?')) dispatch({ type: 'RESET' });
+                if (confirm(t('Abandonner la partie en cours et en commencer une nouvelle ?'))) dispatch({ type: 'RESET' });
               }}
             >
-              Nouvelle partie
+              {t('Nouvelle partie')}
             </button>
           )}
         </div>
@@ -57,11 +65,11 @@ export default function App() {
         {state.stage === 'final' && <FinalScore />}
       </main>
       <footer className="app-footer">
-        Northgard: Uncharted Lands · Compagnon non officiel
-        <span>Créé par des joueurs, pour les joueurs. Non affilié aux créateurs du jeu.</span>
+        Northgard: Uncharted Lands · {t('Compagnon non officiel')}
+        <span>{t('Créé par des joueurs, pour les joueurs. Non affilié aux créateurs du jeu.')}</span>
       </footer>
       {rulesOpen && (
-        <Modal title="Règles" wide onClose={() => setRulesOpen(false)}>
+        <Modal title={t('Règles')} wide onClose={() => setRulesOpen(false)}>
           <Reference />
         </Modal>
       )}

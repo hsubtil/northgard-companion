@@ -1,5 +1,6 @@
 import { CREATURES } from '../data/creatures';
 import { WINTER_COSTS } from '../data/reference';
+import { translate, type Language } from '../i18n/messages';
 import type { CreatureId, GameConfig, ModuleConfig, Phase } from '../types';
 
 export function totalYears(m: ModuleConfig): number {
@@ -101,7 +102,7 @@ export function upgradeCardsPerPlayer(m: ModuleConfig): number {
   return m.warchiefsExtraUpgrades || m.warchiefs ? 3 : 2;
 }
 
-export function validateConfig(c: GameConfig): string[] {
+export function validateConfig(c: GameConfig, language: Language = 'fr'): string[] {
   const errors: string[] = [];
   const n = c.players.length;
   if (n < 2 || n > 5) errors.push('Il faut entre 2 et 5 joueurs.');
@@ -113,5 +114,5 @@ export function validateConfig(c: GameConfig): string[] {
   if (c.modules.teamPlay && n !== 4) errors.push('La variante en équipe nécessite exactement 4 joueurs.');
   if (c.modules.environmentTiles && c.modules.envTiles.length === 0)
     errors.push('Sélectionnez au moins une tuile Environnement (ou désactivez le module).');
-  return errors;
+  return errors.map((error) => translate(language, error));
 }

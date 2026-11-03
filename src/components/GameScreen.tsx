@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { PHASE_LABELS } from '../data/reference';
 import { nextPhase, phaseSequence, totalYears } from '../logic/rules';
 import { useGame } from '../state/context';
 import { CombatCalculator } from './CombatCalculator';
@@ -13,11 +12,14 @@ import { StartPhase } from './phases/StartPhase';
 import { WinterPhase } from './phases/WinterPhase';
 import { Reference } from './Reference';
 import { Panel, PlayerTag } from './ui';
+import { useGameData, useI18n } from '../i18n';
 
 type Tab = 'game' | 'combat' | 'creatures' | 'rules' | 'log';
 
 export function GameScreen() {
   const { state, dispatch } = useGame();
+  const { t } = useI18n();
+  const { PHASE_LABELS } = useGameData();
   const [tab, setTab] = useState<Tab>('game');
   const m = state.config.modules;
   const years = totalYears(m);
@@ -28,15 +30,15 @@ export function GameScreen() {
   const nextLabel = np
     ? `${PHASE_LABELS[np]} →`
     : state.year >= years
-      ? 'Décompte final →'
-      : `Année ${state.year + 1} →`;
+      ? t('Décompte final →')
+      : t('Année {year} →', { year: state.year + 1 });
 
   const tabs: [Tab, string][] = [
-    ['game', '🧭 Partie'],
-    ['combat', '⚔️ Combat'],
-    ...(m.creatures ? ([['creatures', `🐾 Créatures (${state.creatureLine.length})`]] as [Tab, string][]) : []),
-    ['rules', '📜 Règles'],
-    ['log', '📝 Journal'],
+    ['game', `🧭 ${t('Partie')}`],
+    ['combat', `⚔️ ${t('Combat')}`],
+    ...(m.creatures ? ([['creatures', t('🐾 Créatures ({count})', { count: state.creatureLine.length })]] as [Tab, string][]) : []),
+    ['rules', `📜 ${t('Règles')}`],
+    ['log', `📝 ${t('Journal')}`],
   ];
 
   return (
@@ -57,7 +59,7 @@ export function GameScreen() {
           ))}
         </div>
         <div className="first">
-          Premier joueur : <PlayerTag index={state.firstPlayer} />
+          {t('Premier joueur :')} <PlayerTag index={state.firstPlayer} />
         </div>
       </div>
 
@@ -72,7 +74,7 @@ export function GameScreen() {
       {tab === 'game' && (
         <>
           <h2>
-            Année {state.year}/{years} — {PHASE_LABELS[state.phase]}
+            {t('Année {year}/{total} — {phase}', { year: state.year, total: years, phase: PHASE_LABELS[state.phase] })}
           </h2>
           {state.phase === 'start' && <StartPhase />}
           {state.phase === 'actions' && <ActionsPhase />}
@@ -81,7 +83,7 @@ export function GameScreen() {
           {state.phase === 'winter' && <WinterPhase />}
           {state.phase === 'end' && <EndYearPhase />}
           <div className="row end sticky-next">
-            {actionsBlocking && <span className="muted small">Tous les joueurs doivent passer avant la suite.</span>}
+            {actionsBlocking && <span className="muted small">{t('Tous les joueurs doivent passer avant la suite.')}</span>}
             <button className="primary big" disabled={actionsBlocking} onClick={() => dispatch({ type: 'NEXT_PHASE' })}>
               {nextLabel}
             </button>
@@ -90,7 +92,7 @@ export function GameScreen() {
       )}
       {tab === 'combat' && <CombatCalculator />}
       {tab === 'creatures' && (
-        <Panel title="Ligne des créatures (activation de gauche à droite)">
+        <Panel title={t('Ligne des créatures (activation de gauche à droite)')}>
           <CreatureLineView />
         </Panel>
       )}

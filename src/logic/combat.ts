@@ -1,5 +1,6 @@
 import { DIE_FACES, type DieFaceId } from '../data/reference';
 import type { ClanId } from '../types';
+import { translate, type Language } from '../i18n/messages';
 
 export interface PlayerSide {
   kind: 'player';
@@ -52,13 +53,14 @@ export function warchiefValue(side: PlayerSide, role: 'attacker' | 'defender'): 
   return 2;
 }
 
-function evalSide(side: Side, role: 'attacker' | 'defender', vsCreature: boolean): SideResult {
+function evalSide(side: Side, role: 'attacker' | 'defender', vsCreature: boolean, language: Language): SideResult {
+  const t = (message: string, value: number) => translate(language, message, { value });
   const face = DIE_FACES.find((f) => f.id === side.die)!;
   const breakdown: string[] = [];
   if (side.kind === 'creature') {
     // Une créature choisit toujours la perte sur la face 💀/⚔️.
     const skulls = face.skulls + (face.id === 'choice' ? 1 : 0);
-    breakdown.push(`Valeur de combat : ${side.combatValue}`, `Dé : +${face.points}`);
+    breakdown.push(t('Valeur de combat : {value}', side.combatValue), t('Dé : +{value}', face.points));
     return {
       figures: Infinity,
       score: side.combatValue + face.points,
@@ -69,11 +71,11 @@ function evalSide(side: Side, role: 'attacker' | 'defender', vsCreature: boolean
   }
   const figures = side.units + (side.warchief ? 1 : 0) + (side.kaija ? 1 : 0);
   let score = side.units;
-  breakdown.push(`Unités : +${side.units}`);
+  breakdown.push(t('Unités : +{value}', side.units));
   const wc = warchiefValue(side, role);
   if (wc) {
     score += wc;
-    breakdown.push(`Chef de guerre : +${wc}`);
+    breakdown.push(t('Chef de guerre : +{value}', wc));
   }
   if (side.kaija) {
     score += 2;
@@ -81,46 +83,46 @@ function evalSide(side: Side, role: 'attacker' | 'defender', vsCreature: boolean
   }
   if (side.bonusPoints) {
     score += side.bonusPoints;
-    breakdown.push(`Bonus (carte/clan) : +${side.bonusPoints}`);
+    breakdown.push(t('Bonus (carte/clan) : +{value}', side.bonusPoints));
   }
   if (role === 'defender' && side.fortresses) {
     score += side.fortresses * 2;
-    breakdown.push(`Forteresse : +${side.fortresses * 2}`);
+    breakdown.push(t('Forteresse : +{value}', side.fortresses * 2));
   }
   if (side.scorchedEarth) {
     score += 1;
-    breakdown.push('Terre brûlée : +1');
+    breakdown.push(translate(language, 'Terre brûlée : +1'));
   }
   const foodUsed = Math.max(0, Math.min(side.food, figures));
   if (foodUsed) {
     score += foodUsed;
-    breakdown.push(`Nourriture : +${foodUsed}${foodUsed < side.food ? ` (max ${figures})` : ''}`);
+    breakdown.push(translate(language, foodUsed < side.food ? 'Nourriture : +{value} (max {max})' : 'Nourriture : +{value}', { value: foodUsed, max: figures }));
   }
   const choicePoint = face.id === 'choice' && !side.choiceSkull ? 1 : 0;
   const choiceSkull = face.id === 'choice' && side.choiceSkull ? 1 : 0;
   const diePoints = face.points + choicePoint;
   if (diePoints) {
     score += diePoints;
-    breakdown.push(`Dé : +${diePoints}`);
+    breakdown.push(t('Dé : +{value}', diePoints));
   }
   let skulls = face.skulls + choiceSkull + side.extraSkulls;
   if (role === 'defender') skulls += side.towers;
   if (vsCreature && skulls > 0) {
-    breakdown.push(`(${skulls} 💀 ignoré(s) contre une créature)`);
+    breakdown.push(t('({value} 💀 ignoré(s) contre une créature)', skulls));
     skulls = 0;
   }
   return { figures, score, skullsInflicted: skulls, foodUsed, breakdown };
 }
 
-export function resolveCombat(attacker: Side, defender: Side): CombatResult {
+export function resolveCombat(attacker: Side, defender: Side, language: Language = 'fr'): CombatResult {
   const vsCreature = attacker.kind === 'creature' || defender.kind === 'creature';
-  const a = evalSide(attacker, 'attacker', vsCreature);
-  const d = evalSide(defender, 'defender', vsCreature);
+  const a = evalSide(attacker, 'attacker', vsCreature, language);
+  const d = evalSide(defender, 'defender', vsCreature, language);
 
   let skullsOnDefender = a.skullsInflicted;
   if (defender.kind === 'player' && defender.warchief === 'goat' && skullsOnDefender > 0) {
     skullsOnDefender -= 1;
-    d.breakdown.push('Halvard : ignore 1 💀 de l’attaquant');
+    d.breakdown.push(translate(language, 'Halvard : ignore 1 💀 de l’attaquant'));
   }
   const skullsOnAttacker = d.skullsInflicted;
 
@@ -143,15 +145,15 @@ export function resolveCombat(attacker: Side, defender: Side): CombatResult {
     explanation = 'Le défenseur subit autant de pertes que d’unités : il perd.';
   } else if (a.score > d.score) {
     winner = 'attacker';
-    explanation = `Score ${a.score} contre ${d.score} : l’attaquant gagne.`;
+    explanation = translate(language, 'Score {attacker} contre {defender} : l’attaquant gagne.', { attacker: a.score, defender: d.score });
   } else if (a.score < d.score) {
     winner = 'defender';
-    explanation = `Score ${a.score} contre ${d.score} : le défenseur gagne.`;
+    explanation = translate(language, 'Score {attacker} contre {defender} : le défenseur gagne.', { attacker: a.score, defender: d.score });
   } else {
     winner = 'defender';
-    explanation = `Égalité ${a.score} partout : le défenseur gagne.`;
+    explanation = translate(language, 'Égalité {score} partout : le défenseur gagne.', { score: a.score });
   }
-  return { attacker: a, defender: d, attackerLosses, defenderLosses, winner, explanation };
+  return { attacker: a, defender: d, attackerLosses, defenderLosses, winner, explanation: translate(language, explanation) };
 }
 
 export function defaultPlayerSide(): PlayerSide {

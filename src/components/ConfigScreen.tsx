@@ -1,25 +1,25 @@
 import { useState } from 'react';
-import { CLAN_IDS, CLANS, PLAYER_COLORS, colorCss } from '../data/clans';
-import { CREATURES } from '../data/creatures';
-import { ENV_TILE_IDS, ENV_TILES } from '../data/environment';
-import { EXPANSIONS } from '../data/expansions';
+import { colorCss } from '../data/clans';
 import { validateConfig } from '../logic/rules';
 import { useGame } from '../state/context';
 import type { CreatureId, GameConfig, ModuleConfig, Player } from '../types';
 import { Panel, Tip } from './ui';
+import { useGameData, useI18n } from '../i18n';
 
 const WILD_CREATURES: CreatureId[] = ['draugrJotunn', 'eldthurs', 'hvedrung'];
 
-function defaultPlayers(n: number, existing: Player[]): Player[] {
+function defaultPlayers(n: number, existing: Player[], playerColors: ReturnType<typeof useGameData>['PLAYER_COLORS'], clanIds: ReturnType<typeof useGameData>['CLAN_IDS'], t: ReturnType<typeof useI18n>['t']): Player[] {
   return Array.from({ length: n }, (_, i) =>
-    existing[i] ?? { id: `p${i + 1}`, name: `Joueur ${i + 1}`, color: PLAYER_COLORS[i].id, clan: CLAN_IDS[i] },
+    existing[i] ?? { id: `p${i + 1}`, name: t('Joueur {number}', { number: i + 1 }), color: playerColors[i].id, clan: clanIds[i] },
   );
 }
 
 export function ConfigScreen() {
   const { state, dispatch } = useGame();
+  const { language, t } = useI18n();
+  const { CLAN_IDS, CLANS, PLAYER_COLORS, CREATURES, ENV_TILE_IDS, ENV_TILES, EXPANSIONS } = useGameData();
   const prev = state.config;
-  const [players, setPlayers] = useState<Player[]>(prev.players.length ? prev.players : defaultPlayers(3, []));
+  const [players, setPlayers] = useState<Player[]>(prev.players.length ? prev.players : defaultPlayers(3, [], PLAYER_COLORS, CLAN_IDS, t));
   const [m, setM] = useState<ModuleConfig>(prev.modules);
   const [wilderness, setWilderness] = useState(prev.modules.environmentTiles || prev.modules.wildernessCreatures.length > 0);
 
@@ -37,41 +37,41 @@ export function ConfigScreen() {
     teamPlay: players.length === 4 && m.teamPlay,
   };
   const config: GameConfig = { players, modules: effective };
-  const errors = validateConfig(config);
+  const errors = validateConfig(config, language);
 
   return (
     <div className="config">
       <section className="config-hero" aria-labelledby="welcome-title">
         <p className="eyebrow">Northgard: Uncharted Lands</p>
-        <h2 id="welcome-title">Rassemblez<br />votre clan.</h2>
+        <h2 id="welcome-title">{t('Rassemblez')}<br />{t('votre clan.')}</h2>
         <p className="hero-description">
-          Des premières explorations au dernier hiver, votre guide à chaque tour.
-          Choisissez vos clans, vos extensions et partez à la conquête du Nord.
+          {t('Des premières explorations au dernier hiver, votre guide à chaque tour.')}
+          {' '}{t('Choisissez vos clans, vos extensions et partez à la conquête du Nord.')}
         </p>
-        <div className="hero-meta" aria-label="Informations de partie">
-          <span>2 à 5 joueurs</span>
-          <span>Extensions à la carte</span>
-          <span>Sauvegarde automatique</span>
+        <div className="hero-meta" aria-label={t('Informations de partie')}>
+          <span>{t('2 à 5 joueurs')}</span>
+          <span>{t('Extensions à la carte')}</span>
+          <span>{t('Sauvegarde automatique')}</span>
         </div>
       </section>
-      <Panel title="👥 Joueurs">
+      <Panel title={`👥 ${t('Joueurs')}`}>
         <div className="row wrap">
-          <span>Nombre de joueurs :</span>
+          <span>{t('Nombre de joueurs :')}</span>
           {[2, 3, 4, 5].map((n) => (
-            <button key={n} className={players.length === n ? 'primary' : ''} onClick={() => setPlayers(defaultPlayers(n, players))}>
+            <button key={n} className={players.length === n ? 'primary' : ''} onClick={() => setPlayers(defaultPlayers(n, players, PLAYER_COLORS, CLAN_IDS, t))}>
               {n}
             </button>
           ))}
         </div>
-        <p className="muted">Saisissez les joueurs dans l’ordre de la table (sens horaire).</p>
+        <p className="muted">{t('Saisissez les joueurs dans l’ordre de la table (sens horaire).')}</p>
         <div className="player-grid">
           {players.map((p, i) => (
             <div key={p.id} className="player-row">
               <span className="seat">{i + 1}</span>
-              <input value={p.name} onChange={(e) => updatePlayer(i, { name: e.target.value })} aria-label="Nom" />
+              <input value={p.name} onChange={(e) => updatePlayer(i, { name: e.target.value })} aria-label={t('Nom')} />
               <div className="color-select">
                 <span className="color-preview" style={{ background: colorCss(p.color) }} aria-hidden="true" />
-                <select value={p.color} onChange={(e) => updatePlayer(i, { color: e.target.value })} aria-label="Couleur">
+                <select value={p.color} onChange={(e) => updatePlayer(i, { color: e.target.value })} aria-label={t('Couleur')}>
                   {PLAYER_COLORS.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.label}
@@ -79,7 +79,7 @@ export function ConfigScreen() {
                   ))}
                 </select>
               </div>
-              <select value={p.clan} onChange={(e) => updatePlayer(i, { clan: e.target.value as Player['clan'] })} aria-label="Clan">
+              <select value={p.clan} onChange={(e) => updatePlayer(i, { clan: e.target.value as Player['clan'] })} aria-label={t('Clan')}>
                 {CLAN_IDS.map((c) => (
                   <option key={c} value={c}>
                     {CLANS[c].emoji} {CLANS[c].name}
@@ -91,7 +91,7 @@ export function ConfigScreen() {
         </div>
       </Panel>
 
-      <Panel title="📦 Extensions et modules">
+      <Panel title={`📦 ${t('Extensions et modules')}`}>
         <div className="expansions">
           {EXPANSIONS.map((x) => (
             <div key={x.id} className={`expansion ${x.available ? '' : 'disabled'}`}>
@@ -101,12 +101,12 @@ export function ConfigScreen() {
                 <>
                   <label className="check">
                     <input type="checkbox" checked={m.creatures} onChange={(e) => set('creatures', e.target.checked)} />
-                    <span>Module Créatures</span>
+                    <span>{t('Module Créatures')}</span>
                   </label>
                   {m.creatures && (
                     <label className="check">
                       <input type="checkbox" checked={m.moreCreatures} onChange={(e) => set('moreCreatures', e.target.checked)} />
-                      <span>Variante « Plus de créatures ! »</span>
+                      <span>{t('Variante « Plus de créatures ! »')}</span>
                     </label>
                   )}
                 </>
@@ -115,12 +115,12 @@ export function ConfigScreen() {
                 <>
                   <label className="check">
                     <input type="checkbox" checked={wilderness} onChange={(e) => setWilderness(e.target.checked)} />
-                    <span>J’utilise Wilderness</span>
+                    <span>{t('J’utilise Wilderness')}</span>
                   </label>
                   {wilderness && (
                     <div className="sub">
-                      <strong>Nouvelles créatures</strong>
-                      {!m.creatures && <Tip kind="warn">Activez le module Créatures pour les utiliser.</Tip>}
+                      <strong>{t('Nouvelles créatures')}</strong>
+                      {!m.creatures && <Tip kind="warn">{t('Activez le module Créatures pour les utiliser.')}</Tip>}
                       {WILD_CREATURES.map((c) => (
                         <label key={c} className="check">
                           <input
@@ -141,24 +141,24 @@ export function ConfigScreen() {
                       ))}
                       <label className="check">
                         <input type="checkbox" checked={m.environmentTiles} onChange={(e) => set('environmentTiles', e.target.checked)} />
-                        <strong>Module Tuiles Environnement</strong>
+                        <strong>{t('Module Tuiles Environnement')}</strong>
                       </label>
                       {m.environmentTiles &&
-                        ENV_TILE_IDS.map((t) => {
-                          const disabled = ENV_TILES[t].requiresCreatures && !m.creatures;
+                        ENV_TILE_IDS.map((tileId) => {
+                          const disabled = ENV_TILES[tileId].requiresCreatures && !m.creatures;
                           return (
-                            <label key={t} className="check" title={ENV_TILES[t].rule}>
+                            <label key={tileId} className="check" title={ENV_TILES[tileId].rule}>
                               <input
                                 type="checkbox"
                                 disabled={disabled}
-                                checked={!disabled && m.envTiles.includes(t)}
+                                checked={!disabled && m.envTiles.includes(tileId)}
                                 onChange={(e) =>
-                                  set('envTiles', e.target.checked ? [...m.envTiles, t] : m.envTiles.filter((x) => x !== t))
+                                  set('envTiles', e.target.checked ? [...m.envTiles, tileId] : m.envTiles.filter((x) => x !== tileId))
                                 }
                               />
                               <span>
-                                {ENV_TILES[t].emoji} {ENV_TILES[t].name}
-                                {ENV_TILES[t].requiresCreatures && <span className="muted"> (requiert Créatures)</span>}
+                                {ENV_TILES[tileId].emoji} {ENV_TILES[tileId].name}
+                                {ENV_TILES[tileId].requiresCreatures && <span className="muted"> ({t('requiert Créatures')})</span>}
                               </span>
                             </label>
                           );
@@ -171,7 +171,7 @@ export function ConfigScreen() {
                 <>
                   <label className="check">
                     <input type="checkbox" checked={m.warchiefs} onChange={(e) => set('warchiefs', e.target.checked)} />
-                    <span>Module Chefs de guerre</span>
+                    <span>{t('Module Chefs de guerre')}</span>
                   </label>
                   <label className="check">
                     <input
@@ -180,20 +180,20 @@ export function ConfigScreen() {
                       disabled={m.warchiefs}
                       onChange={(e) => set('warchiefsExtraUpgrades', e.target.checked)}
                     />
-                    <span>Nouvelles cartes d’amélioration de Clan</span>
+                    <span>{t('Nouvelles cartes d’amélioration de Clan')}</span>
                   </label>
                 </>
               )}
-              {!x.available && <span className="badge">Bientôt</span>}
+              {!x.available && <span className="badge">{t('Bientôt')}</span>}
             </div>
           ))}
         </div>
       </Panel>
 
-      <Panel title="🎲 Variantes">
+      <Panel title={`🎲 ${t('Variantes')}`}>
         <label className="check">
           <input type="checkbox" checked={m.longGame} onChange={(e) => set('longGame', e.target.checked)} />
-          <span>Partie longue (10 ans, victoire uniquement à la renommée)</span>
+          <span>{t('Partie longue (10 ans, victoire uniquement à la renommée)')}</span>
         </label>
         <label className="check">
           <input
@@ -202,7 +202,7 @@ export function ConfigScreen() {
             checked={players.length === 4 && m.teamPlay}
             onChange={(e) => set('teamPlay', e.target.checked)}
           />
-          <span>Jeu en équipe (4 joueurs exactement : joueurs 1 & 3 contre 2 & 4)</span>
+          <span>{t('Jeu en équipe (4 joueurs exactement : joueurs 1 & 3 contre 2 & 4)')}</span>
         </label>
       </Panel>
 
@@ -213,7 +213,7 @@ export function ConfigScreen() {
       ))}
       <div className="row end">
         <button className="primary big" disabled={errors.length > 0} onClick={() => dispatch({ type: 'CONFIGURE', config })}>
-          Préparer la partie →
+          {t('Préparer la partie →')}
         </button>
       </div>
     </div>

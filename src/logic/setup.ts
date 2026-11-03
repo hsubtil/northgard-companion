@@ -1,6 +1,5 @@
-import { CLANS } from '../data/clans';
-import { CREATURES } from '../data/creatures';
-import { ENV_TILES } from '../data/environment';
+import { getGameData } from '../i18n/data';
+import { translate, type Language } from '../i18n/messages';
 import type { GameConfig } from '../types';
 import {
   advancedPerPlayer,
@@ -22,7 +21,9 @@ export interface SetupStep {
   interactive?: 'firstPlayer' | 'tilePlacement';
 }
 
-export function buildSetupSteps(config: GameConfig, firstPlayer: number): SetupStep[] {
+export function buildSetupSteps(config: GameConfig, firstPlayer: number, language: Language = 'fr'): SetupStep[] {
+  const { CLANS, CREATURES, ENV_TILES } = getGameData(language);
+  const t = (message: string, values?: Record<string, string | number>) => translate(language, message, values);
   const m = config.modules;
   const n = config.players.length;
   const steps: SetupStep[] = [];
@@ -57,8 +58,8 @@ export function buildSetupSteps(config: GameConfig, firstPlayer: number): SetupS
     letter: 'D',
     title: 'Pioche Développement',
     details: [
-      `Mélangez les Développements précoces et prenez-en ${early} (${earlyPerPlayer(m)} par joueur), face cachée.`,
-      `Mélangez les Développements avancés et prenez-en ${adv} (${advancedPerPlayer(m)} par joueur), face cachée.`,
+      t('Mélangez les Développements précoces et prenez-en {count} ({perPlayer} par joueur), face cachée.', { count: early, perPlayer: earlyPerPlayer(m) }),
+      t('Mélangez les Développements avancés et prenez-en {count} ({perPlayer} par joueur), face cachée.', { count: adv, perPlayer: advancedPerPlayer(m) }),
       'Posez la pile Précoce SUR la pile Avancée pour former une seule pioche. Rangez les cartes inutilisées.',
     ],
   });
@@ -66,7 +67,7 @@ export function buildSetupSteps(config: GameConfig, firstPlayer: number): SetupS
     id: 'E',
     letter: 'E',
     title: 'Cartes Succès',
-    details: [`Mélangez les cartes Succès, révélez-en ${n} face visible côte à côte. Rangez les autres.`],
+    details: [t('Mélangez les cartes Succès, révélez-en {count} face visible côte à côte. Rangez les autres.', { count: n })],
   });
   steps.push({
     id: 'F',
@@ -83,13 +84,13 @@ export function buildSetupSteps(config: GameConfig, firstPlayer: number): SetupS
     id: 'G',
     letter: 'G',
     title: 'Couleurs et cartes de départ',
-    details: config.players.map((p) => `${p.name} : prend les 6 cartes de départ et les 14 unités de sa couleur.`),
+    details: config.players.map((p) => t('{player} : prend les 6 cartes de départ et les 14 unités de sa couleur.', { player: p.name })),
   });
   const upgrades = upgradeCardsPerPlayer(m);
   const hDetails = config.players.map(
     (p) =>
-      `${p.name} — ${CLANS[p.clan].name} : 1 carte de Clan initiale + ${upgrades} cartes d’amélioration (mises de côté).` +
-      (m.warchiefs ? ` Prend la figurine de ${CLANS[p.clan].warchief.name}.` : ''),
+      t('{player} — {clan} : 1 carte de Clan initiale + {count} cartes d’amélioration (mises de côté).', { player: p.name, clan: CLANS[p.clan].name, count: upgrades }) +
+      (m.warchiefs ? t(' Prend la figurine de {warchief}.', { warchief: CLANS[p.clan].warchief.name }) : ''),
   );
   if (config.players.some((p) => p.clan === 'bear')) hDetails.push('Ours : prend Kaija (jeton ou figurine).');
   if (config.players.some((p) => p.clan === 'snake')) hDetails.push('Serpent : prend le jeton Terre brûlée.');
@@ -120,7 +121,8 @@ export function buildSetupSteps(config: GameConfig, firstPlayer: number): SetupS
     title: 'Ressources de départ',
     details: orderFrom(firstPlayer, n).map((p, seat) => {
       const r = startingResources(seat + 1);
-      return `${seat + 1}${seat === 0 ? 'er' : 'e'} — ${name(p)} : ${r.food} nourriture + ${r.wood} bois`;
+      const position = language === 'fr' ? `${seat + 1}${seat === 0 ? 'er' : 'e'}` : `${seat + 1}`;
+      return t('{position} — {player} : {food} nourriture + {wood} bois', { position, player: name(p), food: r.food, wood: r.wood });
     }),
   });
   if (m.creatures) {
@@ -133,8 +135,8 @@ export function buildSetupSteps(config: GameConfig, firstPlayer: number): SetupS
       title: 'Pioche Créature',
       module: 'Créatures',
       details: [
-        `Cartes utilisées : ${deck}.`,
-        `Mélangez les cartes Créature de valeur de combat ≤ 6 et formez une pile de ${n + 1} cartes face cachée.`,
+        t('Cartes utilisées : {deck}.', { deck }),
+        t('Mélangez les cartes Créature de valeur de combat ≤ 6 et formez une pile de {count} cartes face cachée.', { count: n + 1 }),
         'Mélangez toutes les autres cartes Créature et placez-les SOUS cette pile : une seule pioche Créature.',
         'Choisissez quel côté de la table est la gauche de la ligne de créatures (elles s’activent de gauche à droite).',
         ...(m.environmentTiles && m.envTiles.includes('ancestralGraveyard')
@@ -148,7 +150,7 @@ export function buildSetupSteps(config: GameConfig, firstPlayer: number): SetupS
   }
   const lDetails = [
     'Chaque joueur pioche 3 tuiles Carte.',
-    `Tour 1 (en commençant par ${name(firstPlayer)}, sens horaire) : posez 1 tuile orthogonalement contre la/les tuile(s) de départ, puis placez un groupe de 3 unités dans un territoire vide de cette tuile.`,
+    t('Tour 1 (en commençant par {player}, sens horaire) : posez 1 tuile orthogonalement contre la/les tuile(s) de départ, puis placez un groupe de 3 unités dans un territoire vide de cette tuile.', { player: name(firstPlayer) }),
     'Tour 2 : posez une 2e tuile contre n’importe quelle tuile posée (frontières continues), puis 3 unités dans un territoire vide de cette tuile — jamais dans le même territoire que votre premier groupe.',
     'Remettez votre 3e tuile dans la pile et mélangez-la.',
     'Aucun pouvoir spécial ne rapporte de ressource, renommée ou autre avantage pendant la mise en place.',
@@ -170,7 +172,7 @@ export function buildSetupSteps(config: GameConfig, firstPlayer: number): SetupS
         title: 'Tuiles Environnement',
         module: 'Wilderness',
         details: [
-          `Mélangez ces tuiles Environnement avec la pile de tuiles Carte : ${regular.map((t) => ENV_TILES[t].name).join(', ')}.`,
+          t('Mélangez ces tuiles Environnement avec la pile de tuiles Carte : {tiles}.', { tiles: regular.map((tile) => ENV_TILES[tile].name).join(', ') }),
         ],
       });
     if (m.envTiles.includes('wyvernDen'))
@@ -180,9 +182,9 @@ export function buildSetupSteps(config: GameConfig, firstPlayer: number): SetupS
         title: 'Antre de la Wyverne',
         module: 'Wilderness',
         details: [
-          `Prenez les ${3 * n} premières tuiles de la pile (3 × ${n} joueurs) et mettez-les de côté.`,
+          t('Prenez les {count} premières tuiles de la pile (3 × {players} joueurs) et mettez-les de côté.', { count: 3 * n, players: n }),
           'Mélangez l’Antre de la Wyverne avec le reste de la pile.',
-          `Reposez les ${3 * n} tuiles mises de côté SUR la pile.`,
+          t('Reposez les {count} tuiles mises de côté SUR la pile.', { count: 3 * n }),
         ],
       });
   }
@@ -193,7 +195,7 @@ export function buildSetupSteps(config: GameConfig, firstPlayer: number): SetupS
       title: 'Équipes',
       module: 'Variante',
       details: [
-        `Équipe 1 : ${name(0)} & ${name(2)} — Équipe 2 : ${name(1)} & ${name(3)}.`,
+        t('Équipe 1 : {a} & {b} — Équipe 2 : {c} & {d}.', { a: name(0), b: name(2), c: name(1), d: name(3) }),
         'Les coéquipiers sont assis face à face ; les tours alternent entre les équipes.',
       ],
     });
@@ -201,7 +203,12 @@ export function buildSetupSteps(config: GameConfig, firstPlayer: number): SetupS
     id: 'M',
     letter: 'M',
     title: 'Que la partie commence !',
-    details: [`La partie dure ${totalYears(m)} ans. Le premier joueur commence l’année 1.`],
+    details: [t('La partie dure {years} ans. Le premier joueur commence l’année 1.', { years: totalYears(m) })],
   });
-  return steps;
+  return steps.map((step) => ({
+    ...step,
+    title: t(step.title),
+    details: step.details.map((detail) => t(detail)),
+    ...(step.module ? { module: t(step.module) } : {}),
+  }));
 }

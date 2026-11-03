@@ -73,6 +73,11 @@ export interface LogEntry {
   year: number;
   phase: Phase | 'setup' | 'final';
   text: string;
+  message?: string;
+  values?: Record<string, string | number>;
+  translatedValues?: string[];
+  player?: string;
+  gameOver?: boolean;
 }
 
 export interface GameState {
@@ -91,4 +96,5 @@ export interface GameState {
   unrestLeft: number;
   log: LogEntry[];
   endReason?: string;
+  endReasonValues?: Record<string, string | number>;
 }

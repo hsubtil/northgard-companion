@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { CREATURE_COLOR_LABEL, CREATURES } from '../data/creatures';
 import { availableCreatures } from '../logic/rules';
 import { useGame } from '../state/context';
 import type { CreatureId } from '../types';
 import { Modal, Tip } from './ui';
+import { useGameData, useI18n } from '../i18n';
 
 export type ApparitionContext = 'setup' | 'explore' | 'pass' | 'graveyard' | 'den' | 'hvedrung' | 'manual';
 
@@ -52,6 +52,8 @@ export function AddCreatureDialog(props: {
   onClose: () => void;
 }) {
   const { state, dispatch } = useGame();
+  const { t } = useI18n();
+  const { CREATURE_COLOR_LABEL, CREATURES } = useGameData();
   const ctx = CONTEXT_TEXT[props.context];
   const options = props.only ?? availableCreatures(state.config.modules).filter((id) => CREATURES[id].source !== 'wildernessEnv');
   const freeColors = (id: CreatureId) =>
@@ -61,13 +63,13 @@ export function AddCreatureDialog(props: {
   if (added) {
     const info = CREATURES[added];
     return (
-      <Modal title={`${info.emoji} ${info.name} apparaît !`} onClose={props.onClose}>
+      <Modal title={t('{name} apparaît !', { name: `${info.emoji} ${info.name}` })} onClose={props.onClose}>
         <ol className="steps">
-          <li>{ctx.where}</li>
+          <li>{t(ctx.where)}</li>
           <li>
-            <strong>Effet :</strong> {info.power}
+            <strong>{t('Effet :')}</strong> {info.power}
           </li>
-          {ctx.after && <li>{ctx.after}</li>}
+          {ctx.after && <li>{t(ctx.after)}</li>}
         </ol>
         {info.notes?.map((n) => (
           <Tip key={n}>{n}</Tip>
@@ -82,8 +84,8 @@ export function AddCreatureDialog(props: {
   }
 
   return (
-    <Modal title="Apparition d’une créature" onClose={props.onClose}>
-      <p>Piochez la carte du dessus de la pioche Créature (si elle est vide, mélangez la défausse). Quelle créature est révélée ?</p>
+    <Modal title={t('Apparition d’une créature')} onClose={props.onClose}>
+      <p>{t('Piochez la carte du dessus de la pioche Créature (si elle est vide, mélangez la défausse). Quelle créature est révélée ?')}</p>
       <div className="creature-pick">
         {options.map((id) => {
           const colors = freeColors(id);
@@ -93,7 +95,7 @@ export function AddCreatureDialog(props: {
                 {CREATURES[id].emoji} <strong>{CREATURES[id].name}</strong>
               </span>
               <span className="row">
-                {colors.length === 0 && <span className="muted">toutes en jeu</span>}
+                {colors.length === 0 && <span className="muted">{t('toutes en jeu')}</span>}
                 {colors.map((c) => (
                   <button
                     key={c}
@@ -117,11 +119,13 @@ export function AddCreatureDialog(props: {
 
 export function CreatureLineView(props: { compact?: boolean; showActivation?: boolean }) {
   const { state, dispatch } = useGame();
+  const { t } = useI18n();
+  const { CREATURE_COLOR_LABEL, CREATURES } = useGameData();
   const [adding, setAdding] = useState(false);
   const line = state.creatureLine;
   return (
     <div className="creature-line">
-      {line.length === 0 && <p className="muted">Aucune créature sur la carte.</p>}
+      {line.length === 0 && <p className="muted">{t('Aucune créature sur la carte.')}</p>}
       <ol>
         {line.map((c, i) => {
           const info = CREATURES[c.creatureId];
@@ -136,21 +140,21 @@ export function CreatureLineView(props: { compact?: boolean; showActivation?: bo
                 <span className="muted">({CREATURE_COLOR_LABEL[c.color]})</span>
                 {info.combatValue && <span className="badge">⚔️ {info.combatValue}</span>}
                 {info.fame && <span className="badge">⭐ {info.fame}</span>}
-                {!info.sharesTerritory && <span className="badge warn">ne partage pas</span>}
+                {!info.sharesTerritory && <span className="badge warn">{t('ne partage pas')}</span>}
                 <span className="spacer" />
                 {!props.compact && (
                   <>
-                    <button className="ghost" title="Vers la gauche" onClick={() => dispatch({ type: 'MOVE_CREATURE', uid: c.uid, delta: -1 })}>
+                    <button className="ghost" title={t('Vers la gauche')} onClick={() => dispatch({ type: 'MOVE_CREATURE', uid: c.uid, delta: -1 })}>
                       ◀
                     </button>
-                    <button className="ghost" title="Vers la droite" onClick={() => dispatch({ type: 'MOVE_CREATURE', uid: c.uid, delta: 1 })}>
+                    <button className="ghost" title={t('Vers la droite')} onClick={() => dispatch({ type: 'MOVE_CREATURE', uid: c.uid, delta: 1 })}>
                       ▶
                     </button>
                   </>
                 )}
                 <button
                   className="ghost danger"
-                  title="Créature vaincue / retirée"
+                  title={t('Créature vaincue / retirée')}
                   onClick={() =>
                     dispatch({
                       type: 'REMOVE_CREATURE',
@@ -172,7 +176,7 @@ export function CreatureLineView(props: { compact?: boolean; showActivation?: bo
       </ol>
       {!props.compact && (
         <button onClick={() => setAdding(true)} disabled={!state.config.modules.creatures}>
-          + Ajouter une créature
+          + {t('Ajouter une créature')}
         </button>
       )}
       {adding && <AddCreatureDialog context="manual" only={availableCreatures(state.config.modules)} onClose={() => setAdding(false)} />}

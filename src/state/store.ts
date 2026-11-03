@@ -1,6 +1,7 @@
 import { CREATURES } from '../data/creatures';
 import { PHASE_LABELS } from '../data/reference';
 import { nextActivePlayer, nextPhase, totalYears } from '../logic/rules';
+import { translate, type MessageValues } from '../i18n/messages';
 import type { CreatureId, GameConfig, GameState, LogEntry, Phase } from '../types';
 
 export const UNREST_CARDS = 10;
@@ -12,7 +13,7 @@ export type Action =
   | { type: 'SET_FIRST_PLAYER'; player: number }
   | { type: 'START_GAME' }
   | { type: 'TOGGLE_CHECK'; key: string }
-  | { type: 'END_TURN'; player: number; text: string }
+  | { type: 'END_TURN'; player: number; text: string; values?: MessageValues; translatedValues?: string[] }
   | { type: 'PASS'; player: number }
   | { type: 'SET_CURRENT'; player: number }
   | { type: 'UPGRADE'; player: number }
@@ -23,8 +24,8 @@ export type Action =
   | { type: 'TOGGLE_ACTIVATED'; uid: string }
   | { type: 'ADD_UNREST'; player: number }
   | { type: 'SET_UNITS'; player: number; units: number }
-  | { type: 'LOG'; text: string }
-  | { type: 'END_GAME'; reason: string }
+  | { type: 'LOG'; text: string; values?: MessageValues; translatedValues?: string[] }
+  | { type: 'END_GAME'; reason: string; values?: MessageValues }
   | { type: 'RESUME_GAME' };
 
 export function initialState(): GameState {
@@ -65,10 +66,14 @@ function uid(): string {
   return `${Date.now().toString(36)}-${uidCounter}`;
 }
 
-function log(state: GameState, text: string): LogEntry[] {
+function log(
+  state: GameState, message: string, values?: MessageValues,
+  options: Pick<LogEntry, 'translatedValues' | 'player' | 'gameOver'> = {},
+): LogEntry[] {
   const phase: LogEntry['phase'] = state.stage === 'setup' ? 'setup' : state.stage === 'final' ? 'final' : state.phase;
   const id = (state.log[0]?.id ?? 0) + 1;
-  return [{ id, year: state.year, phase, text }, ...state.log];
+  const text = `${options.gameOver ? 'Fin de la partie : ' : ''}${options.player ? `${options.player} : ` : ''}${translate('fr', message, values)}`;
+  return [{ id, year: state.year, phase, text, message, values, ...options }, ...state.log];
 }
 
 function toggle(list: string[], v: string): string[] {
@@ -86,7 +91,7 @@ function enterPhase(state: GameState, phase: Phase): GameState {
     };
   }
   if (phase === 'creatures') s = { ...s, activated: [] };
-  return { ...s, log: log(s, `→ ${PHASE_LABELS[phase]}`) };
+  return { ...s, log: log(s, '→ {phase}', { phase: PHASE_LABELS[phase] }, { translatedValues: ['phase'] }) };
 }
 
 export function reducer(state: GameState, action: Action): GameState {
@@ -99,7 +104,7 @@ export function reducer(state: GameState, action: Action): GameState {
         config: action.config,
         players: action.config.players.map(() => ({ unrest: 0, upgradesTaken: 0, units: 6, passed: false })),
       };
-      return { ...s, log: log(s, `Nouvelle partie : ${action.config.players.map((p) => p.name).join(', ')}`) };
+      return { ...s, log: log(s, 'Nouvelle partie : {players}', { players: action.config.players.map((p) => p.name).join(', ') }) };
     }
     case 'BACK_TO_CONFIG':
       return { ...state, stage: 'config' };
@@ -109,14 +114,14 @@ export function reducer(state: GameState, action: Action): GameState {
       return { ...state, firstPlayer: action.player, current: action.player };
     case 'START_GAME': {
       const s: GameState = { ...state, stage: 'play', year: 1, phase: 'start', current: state.firstPlayer, checks: [] };
-      return { ...s, log: log(s, `Début de la partie. Premier joueur : ${pname(state.firstPlayer)}`) };
+      return { ...s, log: log(s, 'Début de la partie. Premier joueur : {player}', { player: pname(state.firstPlayer) }) };
     }
     case 'TOGGLE_CHECK':
       return { ...state, checks: toggle(state.checks, action.key) };
     case 'END_TURN': {
       const next = nextActivePlayer(action.player, state.players.map((p) => p.passed));
       const s = { ...state, current: next ?? action.player };
-      return { ...s, log: log(state, `${pname(action.player)} : ${action.text}`) };
+      return { ...s, log: log(state, action.text, action.values, { player: pname(action.player), translatedValues: action.translatedValues }) };
     }
     case 'PASS': {
       const players = state.players.map((p, i) => (i === action.player ? { ...p, passed: true } : p));
@@ -131,7 +136,7 @@ export function reducer(state: GameState, action: Action): GameState {
       };
       return {
         ...s,
-        log: log(state, `${pname(action.player)} passe${isFirst ? ' et prend le marqueur Premier joueur' : ''}.`),
+        log: log(state, isFirst ? '{player} passe et prend le marqueur Premier joueur.' : '{player} passe.', { player: pname(action.player) }),
       };
     }
     case 'SET_CURRENT':
@@ -145,11 +150,11 @@ export function reducer(state: GameState, action: Action): GameState {
       const np = nextPhase(state.phase, state.config.modules);
       if (np) return enterPhase(state, np);
       if (state.year >= totalYears(state.config.modules)) {
-        const s: GameState = { ...state, stage: 'final', endReason: `Fin de la ${state.year}e année.` };
+        const s: GameState = { ...state, stage: 'final', endReason: 'Fin de la {year}e année.', endReasonValues: { year: state.year } };
         return { ...s, log: log(s, 'Fin de la partie : décompte final.') };
       }
       const s: GameState = { ...state, year: state.year + 1 };
-      return enterPhase({ ...s, log: log(s, `═══ Année ${s.year} ═══`) }, 'start');
+      return enterPhase({ ...s, log: log(s, '═══ Année {year} ═══', { year: s.year }) }, 'start');
     }
     case 'ADD_CREATURE': {
       const entry = { uid: uid(), creatureId: action.creatureId, color: action.color };
@@ -160,7 +165,7 @@ export function reducer(state: GameState, action: Action): GameState {
       return {
         ...state,
         creatureLine: line,
-        log: log(state, `🐾 ${CREATURES[action.creatureId].name} apparaît (${action.reason}).`),
+        log: log(state, '🐾 {creature} apparaît ({reason}).', { creature: CREATURES[action.creatureId].name, reason: action.reason }, { translatedValues: ['creature', 'reason'] }),
       };
     }
     case 'REMOVE_CREATURE': {
@@ -169,7 +174,7 @@ export function reducer(state: GameState, action: Action): GameState {
       return {
         ...state,
         creatureLine: state.creatureLine.filter((x) => x.uid !== action.uid),
-        log: log(state, `🐾 ${CREATURES[c.creatureId].name} retirée (${action.reason}).`),
+        log: log(state, '🐾 {creature} retirée ({reason}).', { creature: CREATURES[c.creatureId].name, reason: action.reason }, { translatedValues: ['creature', 'reason'] }),
       };
     }
     case 'MOVE_CREATURE': {
@@ -187,14 +192,14 @@ export function reducer(state: GameState, action: Action): GameState {
       if (state.unrestLeft <= 0) {
         return {
           ...state,
-          log: log(state, `${pname(action.player)} ne peut pas payer : plus de cartes Troubles → −5 renommée et défausse la carte du dessus de sa pioche.`),
+          log: log(state, '{player} ne peut pas payer : plus de cartes Troubles → −5 renommée et défausse la carte du dessus de sa pioche.', { player: pname(action.player) }),
         };
       }
       return {
         ...state,
         players,
         unrestLeft: state.unrestLeft - 1,
-        log: log(state, `${pname(action.player)} ne peut pas payer l’Hiver : prend une carte Troubles (sur sa pioche).`),
+        log: log(state, '{player} ne peut pas payer l’Hiver : prend une carte Troubles (sur sa pioche).', { player: pname(action.player) }),
       };
     }
     case 'SET_UNITS':
@@ -203,13 +208,13 @@ export function reducer(state: GameState, action: Action): GameState {
         players: state.players.map((p, i) => (i === action.player ? { ...p, units: Math.max(0, action.units) } : p)),
       };
     case 'LOG':
-      return { ...state, log: log(state, action.text) };
+      return { ...state, log: log(state, action.text, action.values, { translatedValues: action.translatedValues }) };
     case 'END_GAME': {
-      const s: GameState = { ...state, stage: 'final', endReason: action.reason };
-      return { ...s, log: log(s, `Fin de la partie : ${action.reason}`) };
+      const s: GameState = { ...state, stage: 'final', endReason: action.reason, endReasonValues: action.values };
+      return { ...s, log: log(s, action.reason, action.values, { gameOver: true }) };
     }
     case 'RESUME_GAME':
-      return { ...state, stage: 'play', endReason: undefined };
+      return { ...state, stage: 'play', endReason: undefined, endReasonValues: undefined };
   }
 }
 

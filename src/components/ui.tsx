@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
-import { CLANS, colorCss } from '../data/clans';
+import { colorCss } from '../data/clans';
 import { useGame } from '../state/context';
+import { useGameData, useI18n } from '../i18n';
 
 export function Panel(props: { title?: ReactNode; children: ReactNode; className?: string; aside?: ReactNode }) {
   return (
@@ -29,6 +30,8 @@ export function Check(props: { checkKey: string; children: ReactNode }) {
 
 export function PlayerTag(props: { index: number; showClan?: boolean }) {
   const { state } = useGame();
+  const { CLANS } = useGameData();
+  const { t } = useI18n();
   const p = state.config.players[props.index];
   if (!p) return null;
   const clan = CLANS[p.clan];
@@ -43,7 +46,7 @@ export function PlayerTag(props: { index: number; showClan?: boolean }) {
         </span>
       )}
       {state.firstPlayer === props.index && state.stage === 'play' && (
-        <span title="Marqueur Premier joueur" className="first-marker">
+        <span title={t('Marqueur Premier joueur')} className="first-marker">
           ①
         </span>
       )}
@@ -52,12 +55,13 @@ export function PlayerTag(props: { index: number; showClan?: boolean }) {
 }
 
 export function Modal(props: { title: string; onClose: () => void; children: ReactNode; wide?: boolean }) {
+  const { t } = useI18n();
   return (
     <div className="modal-backdrop" onClick={props.onClose}>
       <div className={`modal ${props.wide ? 'wide' : ''}`} onClick={(e) => e.stopPropagation()}>
         <header className="panel-head">
           <h3>{props.title}</h3>
-          <button className="ghost" onClick={props.onClose} aria-label="Fermer">
+          <button className="ghost" onClick={props.onClose} aria-label={t('Fermer')}>
             ✕
           </button>
         </header>

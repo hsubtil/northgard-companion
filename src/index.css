@@ -175,6 +175,16 @@ select {
 .header-actions {
   flex-wrap: wrap;
   justify-content: flex-end;
+  min-width: 0;
+}
+.language-select {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+}
+.language-select select {
+  max-width: 9rem;
 }
 .app-footer {
   max-width: 1100px;

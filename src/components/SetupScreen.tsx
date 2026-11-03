@@ -4,11 +4,13 @@ import { orderFrom } from '../logic/rules';
 import { useGame } from '../state/context';
 import { AddCreatureDialog, CreatureLineView } from './CreatureLine';
 import { Panel, PlayerTag, Tip } from './ui';
+import { useI18n } from '../i18n';
 
 export function SetupScreen() {
   const { state, dispatch } = useGame();
+  const { language, t } = useI18n();
   const [addingCreature, setAddingCreature] = useState(false);
-  const steps = buildSetupSteps(state.config, state.firstPlayer);
+  const steps = buildSetupSteps(state.config, state.firstPlayer, language);
   const n = state.config.players.length;
   const doneCount = steps.filter((s) => state.setupDone.includes(s.id)).length;
   const nextStep = steps.find((s) => !state.setupDone.includes(s.id));
@@ -16,8 +18,8 @@ export function SetupScreen() {
   return (
     <div className="setup">
       <div className="row between">
-        <h2>Mise en place ({doneCount}/{steps.length})</h2>
-        <button onClick={() => dispatch({ type: 'BACK_TO_CONFIG' })}>← Modifier la configuration</button>
+        <h2>{t('Mise en place')} ({doneCount}/{steps.length})</h2>
+        <button onClick={() => dispatch({ type: 'BACK_TO_CONFIG' })}>← {t('Modifier la configuration')}</button>
       </div>
       <div className="progress">
         <div style={{ width: `${(doneCount / steps.length) * 100}%` }} />
@@ -48,7 +50,7 @@ export function SetupScreen() {
                 </ul>
                 {s.interactive === 'firstPlayer' && (
                   <div className="row wrap">
-                    <span>Premier joueur :</span>
+                    <span>{t('Premier joueur :')}</span>
                     {state.config.players.map((_, i) => (
                       <button
                         key={i}
@@ -59,7 +61,7 @@ export function SetupScreen() {
                       </button>
                     ))}
                     <button onClick={() => dispatch({ type: 'SET_FIRST_PLAYER', player: Math.floor(Math.random() * n) })}>
-                      🎲 Tirage au sort
+                      🎲 {t('Tirage au sort')}
                     </button>
                   </div>
                 )}
@@ -68,7 +70,7 @@ export function SetupScreen() {
                     <div className="placement-order">
                       {[1, 2].map((round) => (
                         <div key={round}>
-                          <strong>Tour {round} :</strong>{' '}
+                          <strong>{t('Tour {round} :', { round })}</strong>{' '}
                           {orderFrom(state.firstPlayer, n).map((p) => (
                             <PlayerTag key={p} index={p} showClan={false} />
                           ))}
@@ -77,8 +79,8 @@ export function SetupScreen() {
                     </div>
                     {state.config.modules.creatures && (
                       <>
-                        <Tip kind="module">Une tuile avec un repaire a été posée ? Enregistrez la créature apparue :</Tip>
-                        <button onClick={() => setAddingCreature(true)}>🐾 Une créature apparaît</button>
+                        <Tip kind="module">{t('Une tuile avec un repaire a été posée ? Enregistrez la créature apparue :')}</Tip>
+                        <button onClick={() => setAddingCreature(true)}>🐾 {t('Une créature apparaît')}</button>
                         <CreatureLineView compact />
                       </>
                     )}
@@ -89,10 +91,10 @@ export function SetupScreen() {
           </Panel>
         );
       })}
-      {doneCount < steps.length && <Tip kind="warn">Toutes les étapes ne sont pas cochées — vous pouvez quand même commencer.</Tip>}
+      {doneCount < steps.length && <Tip kind="warn">{t('Toutes les étapes ne sont pas cochées — vous pouvez quand même commencer.')}</Tip>}
       <div className="row end">
         <button className="primary big" onClick={() => dispatch({ type: 'START_GAME' })}>
-          Commencer l’année 1 →
+          {t('Commencer l’année 1 →')}
         </button>
       </div>
       {addingCreature && <AddCreatureDialog context="setup" onClose={() => setAddingCreature(false)} />}

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useGame } from '../state/context';
 import { NumberField, Panel, PlayerTag, Tip } from './ui';
+import { translateEndReason, useI18n } from '../i18n';
 
 interface ScoreInput {
   tokens: number;
@@ -11,6 +12,7 @@ interface ScoreInput {
 
 export function FinalScore() {
   const { state, dispatch } = useGame();
+  const { language, t } = useI18n();
   const players = state.config.players;
   const [inputs, setInputs] = useState<ScoreInput[]>(() =>
     state.players.map((p) => ({ tokens: 0, resources: 0, cards: 0, unrest: p.unrest })),
@@ -22,36 +24,35 @@ export function FinalScore() {
 
   return (
     <div className="final">
-      <h2>🏁 Fin de la partie</h2>
-      {state.endReason && <Tip kind="warn">{state.endReason}</Tip>}
+      <h2>🏁 {t('Fin de la partie')}</h2>
+      {state.endReason && <Tip kind="warn">{translateEndReason(state, language)}</Tip>}
       <Tip>
-        Une victoire par 3 territoires fermés avec grand bâtiment l’emporte toujours sur la renommée. Sinon, calculez la
-        renommée :
+        {t('Une victoire par 3 territoires fermés avec grand bâtiment l’emporte toujours sur la renommée. Sinon, calculez la renommée :')}
       </Tip>
       <div className="score-grid">
         {players.map((_, i) => (
           <Panel key={i} title={<PlayerTag index={i} />}>
-            <NumberField label="Jetons de renommée" value={inputs[i].tokens} onChange={(v) => update(i, { tokens: v })} max={999} />
+            <NumberField label={t('Jetons de renommée')} value={inputs[i].tokens} onChange={(v) => update(i, { tokens: v })} max={999} />
             <NumberField
-              label="Ressources restantes (1 ⭐ / 3)"
+              label={t('Ressources restantes (1 ⭐ / 3)')}
               value={inputs[i].resources}
               onChange={(v) => update(i, { resources: v })}
               max={999}
             />
             <NumberField
-              label="Valeur des cartes Développement + Succès"
+              label={t('Valeur des cartes Développement + Succès')}
               value={inputs[i].cards}
               onChange={(v) => update(i, { cards: v })}
               max={999}
             />
-            <NumberField label="Cartes Troubles (−5 chacune)" value={inputs[i].unrest} onChange={(v) => update(i, { unrest: v })} />
+            <NumberField label={t('Cartes Troubles (−5 chacune)')} value={inputs[i].unrest} onChange={(v) => update(i, { unrest: v })} />
             <div className="total">
-              Total : <strong>{total(inputs[i])}</strong> ⭐
+              {t('Total :')} <strong>{total(inputs[i])}</strong> ⭐
             </div>
           </Panel>
         ))}
       </div>
-      <Panel title="Classement">
+      <Panel title={t('Classement')}>
         {team ? (
           <ol>
             {[
@@ -76,12 +77,11 @@ export function FinalScore() {
           </ol>
         )}
         <p className="muted small">
-          Égalité : le plus de territoires contrôlés (ouverts ou fermés), puis le plus d’unités sur la carte, puis le plus de
-          bâtiments.
+          {t('Égalité : le plus de territoires contrôlés (ouverts ou fermés), puis le plus d’unités sur la carte, puis le plus de bâtiments.')}
         </p>
       </Panel>
       <div className="row end">
-        <button onClick={() => dispatch({ type: 'RESUME_GAME' })}>← Revenir à la partie</button>
+        <button onClick={() => dispatch({ type: 'RESUME_GAME' })}>← {t('Revenir à la partie')}</button>
       </div>
     </div>
   );

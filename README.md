@@ -1,6 +1,6 @@
 # Northgard – Compagnon de jeu
 
-Application web (React + Vite + TypeScript) qui accompagne une partie de **Northgard: Uncharted Lands** pas à pas : mise en place, ordre des tours, phases de l’année, ligne des créatures, calculateur de combat, aide-mémoire des règles et journal.
+Application web bilingue français/anglais (React + Vite + TypeScript) qui accompagne une partie de **Northgard: Uncharted Lands** pas à pas : mise en place, ordre des tours, phases de l’année, ligne des créatures, calculateur de combat, aide-mémoire des règles et journal.
 
 ## Lancer
 
@@ -20,6 +20,15 @@ npm.cmd run build    # version de production dans dist/
 - **Combat** : calcul du score et des pertes (dé, nourriture, forteresses, tours, chefs de guerre, Kaija, créatures).
 - **Récolte / Hiver / Fin d’année** : renommée des territoires fermés, coût d’hiver selon le nombre d’unités, cartes Troubles.
 - **Annuler** (100 niveaux) et sauvegarde automatique dans le navigateur (`localStorage`).
+- **Français / English** : sélecteur de langue dans l’en-tête, préférence mémorisée séparément de la partie. Changer de langue ne modifie ni les noms saisis ni la progression.
+
+## Traductions
+
+Le français reste la langue par défaut, y compris pour les parties déjà sauvegardées. L’anglais couvre l’interface, les règles, les extensions, la mise en place, les résultats de combat et le journal. La recherche de règles utilise la langue affichée.
+
+Les messages français servent de clés dans les catalogues `src/i18n/data.en.ts` (règles), `src/i18n/logic.en.ts` (guidage et calculs) et `src/i18n/ui.en.ts` (interface). Utiliser `t('Message {value}', { value })` pour les messages dynamiques et conserver les mêmes paramètres dans les deux langues. Les noms personnalisés ne doivent pas être traduits.
+
+Les nouveaux événements du journal conservent le message et ses paramètres pour être réaffichés dans les deux langues ; les anciens événements français reconnus sont également traduits à l’affichage. La sauvegarde de partie existante (`northgard-companion-v1`) n’est pas remplacée. La langue utilise la clé indépendante `northgard-companion-language`.
 
 ## Identité visuelle
 
