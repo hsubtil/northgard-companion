@@ -41,8 +41,21 @@ export function ConfigScreen() {
 
   return (
     <div className="config">
+      <section className="config-hero" aria-labelledby="welcome-title">
+        <p className="eyebrow">Northgard: Uncharted Lands</p>
+        <h2 id="welcome-title">Rassemblez<br />votre clan.</h2>
+        <p className="hero-description">
+          Des premières explorations au dernier hiver, votre guide à chaque tour.
+          Choisissez vos clans, vos extensions et partez à la conquête du Nord.
+        </p>
+        <div className="hero-meta" aria-label="Informations de partie">
+          <span>2 à 5 joueurs</span>
+          <span>Extensions à la carte</span>
+          <span>Sauvegarde automatique</span>
+        </div>
+      </section>
       <Panel title="👥 Joueurs">
-        <div className="row">
+        <div className="row wrap">
           <span>Nombre de joueurs :</span>
           {[2, 3, 4, 5].map((n) => (
             <button key={n} className={players.length === n ? 'primary' : ''} onClick={() => setPlayers(defaultPlayers(n, players))}>

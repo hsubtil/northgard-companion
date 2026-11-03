@@ -18,10 +18,13 @@ export default function App() {
   return (
     <GameContext.Provider value={{ state, dispatch, canUndo: store.past.length > 0 }}>
       <header className="app-header">
-        <h1>
-          ᚾ Northgard <span className="muted">Compagnon</span>
+        <h1 className="brand">
+          <img src={`${import.meta.env.BASE_URL}logo.svg`} alt="" width="56" height="56" />
+          <span className="brand-name">
+            Northgard <span className="brand-subtitle">Compagnon de jeu</span>
+          </span>
         </h1>
-        <div className="row">
+        <div className="row header-actions">
           {state.stage !== 'play' && (
             <button className="ghost" onClick={() => setRulesOpen(true)}>
               📜 Règles
@@ -53,6 +56,10 @@ export default function App() {
         {state.stage === 'play' && <GameScreen />}
         {state.stage === 'final' && <FinalScore />}
       </main>
+      <footer className="app-footer">
+        Northgard: Uncharted Lands · Compagnon non officiel
+        <span>Créé par des joueurs, pour les joueurs. Non affilié aux créateurs du jeu.</span>
+      </footer>
       {rulesOpen && (
         <Modal title="Règles" wide onClose={() => setRulesOpen(false)}>
           <Reference />

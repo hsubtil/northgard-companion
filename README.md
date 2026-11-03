@@ -21,6 +21,12 @@ npm.cmd run build    # version de production dans dist/
 - **Récolte / Hiver / Fin d’année** : renommée des territoires fermés, coût d’hiver selon le nombre d’unités, cartes Troubles.
 - **Annuler** (100 niveaux) et sauvegarde automatique dans le navigateur (`localStorage`).
 
+## Identité visuelle
+
+Le thème s’inspire des paysages bleu orage et des titres blancs du [site Northgard](https://northgard.net/). Le logo boussole, le favicon et le paysage SVG sont des créations originales dans `public/` ; aucun visuel officiel ni police distante n’est embarqué. Le compagnon est non officiel et non affilié aux créateurs du jeu.
+
+Les couleurs et styles partagés sont dans `src/index.css`. Les visuels restent servis localement et utilisent le chemin de base Vite pour GitHub Pages.
+
 ## Où modifier les règles
 
 Tout le contenu de règles est dans `src/data/` (textes en français) :
