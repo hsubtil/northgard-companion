@@ -5,11 +5,13 @@ import { useGame } from '../state/context';
 import { AddCreatureDialog, CreatureLineView } from './CreatureLine';
 import { Panel, PlayerTag, Tip } from './ui';
 import { useI18n } from '../i18n';
+import { SetupDiagram } from './SetupDiagram';
 
 export function SetupScreen() {
   const { state, dispatch } = useGame();
   const { language, t } = useI18n();
   const [addingCreature, setAddingCreature] = useState(false);
+  const [focusedStep, setFocusedStep] = useState<string | null>(null);
   const steps = buildSetupSteps(state.config, state.firstPlayer, language);
   const n = state.config.players.length;
   const doneCount = steps.filter((s) => state.setupDone.includes(s.id)).length;
@@ -17,19 +19,20 @@ export function SetupScreen() {
 
   return (
     <div className="setup">
-      <div className="row between">
+      <div className="row between wrap">
         <h2>{t('Mise en place')} ({doneCount}/{steps.length})</h2>
         <button onClick={() => dispatch({ type: 'BACK_TO_CONFIG' })}>← {t('Modifier la configuration')}</button>
       </div>
       <div className="progress">
         <div style={{ width: `${(doneCount / steps.length) * 100}%` }} />
       </div>
+      <SetupDiagram steps={steps} />
       {steps.map((s) => {
         const done = state.setupDone.includes(s.id);
         const isNext = nextStep?.id === s.id;
         return (
-          <Panel
-            key={s.id}
+          <div key={s.id} id={`setup-step-${s.id}`} className="setup-step-anchor" tabIndex={-1} onFocus={() => setFocusedStep(s.id)}>
+            <Panel
             className={`setup-step ${done ? 'done' : ''} ${isNext ? 'current' : ''}`}
             title={
               <label className="check">
@@ -41,7 +44,7 @@ export function SetupScreen() {
               </label>
             }
           >
-            {(!done || isNext) && (
+            {(!done || isNext || focusedStep === s.id) && (
               <>
                 <ul>
                   {s.details.map((d) => (
@@ -88,7 +91,8 @@ export function SetupScreen() {
                 )}
               </>
             )}
-          </Panel>
+            </Panel>
+          </div>
         );
       })}
       {doneCount < steps.length && <Tip kind="warn">{t('Toutes les étapes ne sont pas cochées — vous pouvez quand même commencer.')}</Tip>}

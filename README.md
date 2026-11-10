@@ -15,6 +15,8 @@ npm.cmd run build    # version de production dans dist/
 
 - **Configuration** : 2 à 5 joueurs (ordre de table, couleur, clan), extensions *Wilderness* et *Warchiefs*, module Créatures, variantes (Partie longue, Plus de créatures !, jeu en équipe).
 - **Mise en place** : liste de contrôle adaptée au nombre de joueurs et aux modules (nombre de cartes Développement, pioche Créature, ressources de départ selon la position, tuiles Environnement, Antre de la Wyverne…).
+- **Plan de la table** : schéma indicatif des réserves, pioches, carte centrale et espaces des joueurs, adapté aux modules et au premier joueur. Les cases partagent la progression de la liste de contrôle ; cliquer sur un intitulé mène aux consignes détaillées. Les étapes sont validées pour toute la table, pas joueur par joueur. Le schéma ne reproduit pas la carte réelle et les ressources indiquées sont celles du départ.
+  Cliquez sur le titre pour masquer ou afficher le schéma (ouvert par défaut), sans modifier la progression.
 - **Déroulement guidé** : année et phase en cours, joueur actif, choix du tour (jouer / attendre / remplacer / retirer / améliorer / passer), rappels de pouvoir de clan et de chef de guerre, gestion du marqueur Premier joueur.
 - **Créatures** : quand une tuile avec repaire est explorée, l’application demande quelle créature est piochée et l’ajoute à la ligne des créatures ; phase Créatures guidée de gauche à droite.
 - **Combat** : calcul du score et des pertes (dé, nourriture, forteresses, tours, chefs de guerre, Kaija, créatures).

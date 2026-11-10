@@ -405,6 +405,186 @@ select {
 }
 
 /* Setup */
+.setup-step-anchor {
+  scroll-margin-top: 7rem;
+}
+.setup-step-anchor:focus {
+  outline: 2px solid var(--accent2);
+  outline-offset: 3px;
+}
+.diagram-summary {
+  cursor: pointer;
+  font-weight: 800;
+}
+.diagram-summary > span:first-child {
+  margin-right: 0.5rem;
+}
+.diagram-summary .badge {
+  font-weight: 400;
+}
+.diagram-table {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+  padding: 0.8rem;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  background: radial-gradient(ellipse at center, #294252, var(--bg2));
+}
+.diagram-zone {
+  min-width: 0;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.8rem;
+}
+.diagram-zone h4 {
+  margin: 0 0 0.8rem;
+}
+.diagram-cards,
+.diagram-map,
+.diagram-players {
+  grid-column: 1 / -1;
+}
+.diagram-tokens,
+.diagram-track,
+.diagram-decks,
+.diagram-creature-flow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.8rem;
+}
+.diagram-tokens > span,
+.diagram-track > span {
+  display: grid;
+  place-items: center;
+  min-width: 2rem;
+  height: 2rem;
+  background: var(--panel2);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+}
+.diagram-track .current {
+  background: var(--accent);
+  color: var(--bg);
+}
+.diagram-decks > div {
+  flex: 1 1 130px;
+}
+.diagram-deck {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 4.5rem;
+  padding: 0.6rem;
+  background: repeating-linear-gradient(45deg, #25394c, #25394c 6px, #293e51 6px, #293e51 12px);
+  border: 1px solid var(--muted);
+  border-radius: 5px;
+  box-shadow: 3px 3px 0 var(--bg);
+}
+.diagram-deck.face-up {
+  background: var(--panel2);
+  border-color: var(--accent);
+}
+.diagram-map {
+  text-align: center;
+}
+.diagram-map-art {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.diagram-tile {
+  display: grid;
+  place-items: center;
+  width: clamp(2.5rem, 10vw, 4.5rem);
+  aspect-ratio: 1;
+  border: 2px solid var(--accent);
+  border-radius: 4px;
+  background: linear-gradient(135deg, #426954 50%, #304d5b 50%);
+  font-size: 1.8rem;
+}
+.diagram-tile.ghost {
+  border: 1px dashed var(--muted);
+  background: transparent;
+}
+.diagram-step {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem 0.5rem;
+  text-align: left;
+  margin-top: 0.5rem;
+  padding: 0.4rem;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+}
+.diagram-step.current {
+  border-color: var(--accent);
+}
+.diagram-step.done {
+  border-color: var(--ok);
+}
+.diagram-step label {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  min-height: 1.5rem;
+}
+.diagram-step input {
+  accent-color: var(--accent);
+}
+.diagram-step a {
+  color: var(--text);
+  text-underline-offset: 0.2em;
+  overflow-wrap: anywhere;
+}
+.diagram-status {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+.diagram-step.done .diagram-status {
+  color: var(--ok);
+}
+.diagram-player-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
+  gap: 0.8rem;
+}
+.diagram-player {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  padding: 0.7rem;
+  border: 2px solid;
+  border-radius: 4px;
+}
+.diagram-player p {
+  margin: 0.5rem 0;
+}
+.diagram-personal-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.3rem;
+  font-size: 0.75rem;
+}
+.diagram-personal-cards > span {
+  padding: 0.5rem 0.3rem;
+  border: 1px dashed var(--muted);
+  text-align: center;
+}
+.diagram-ready {
+  margin-top: 0.8rem;
+}
+@media (max-width: 700px) {
+  .diagram-table {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 0.5rem;
+  }
+}
 .progress {
   height: 6px;
   background: var(--panel2);
